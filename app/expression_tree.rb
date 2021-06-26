@@ -1,8 +1,3 @@
-
-# require './app/expression_tree';e = ExpressionTree.new([2,'+',9]);x=e.create();e.print_tree(x)
-# ExpressionTree.new();x=e.create([1,'+',3,'*',4,'+',2,'/',2]);e.print_tree(x)
-# require './app/expression_tree';e = ExpressionTree.new([2,'+',9]);x=e.create();order = [];e.print_tree(x,order);puts(order)
-
 require_relative 'tree_node'
 
 class ExpressionTree
@@ -22,8 +17,6 @@ class ExpressionTree
         
         if tokens.count == 1
             return TreeNode.new(tokens.first)
-        elsif tokens.first == '('
-            return create(tokens.slice(1..-2))
         elsif tokens.count == 3
             left = TreeNode.new(tokens.first)
             parent = TreeNode.new(tokens[1])
@@ -39,13 +32,9 @@ class ExpressionTree
                 tokens.delete_at(0)
             end
 
-            
-
             op = tokens.first
             tokens.delete_at(0)
-            puts "left " + expr.to_s + " op " + op.to_s + " right " + tokens.to_s
-
-            
+            #puts "left " + expr.to_s + " op " + op.to_s + " right " + tokens.to_s
 
             left = create(expr)
             parent = TreeNode.new(op)
@@ -59,7 +48,8 @@ class ExpressionTree
     end
 
 
-    # preorder
+    private
+
     def print_tree(head, order)
         if head.left.nil? && head.right.nil?
             order.push(head.value)
