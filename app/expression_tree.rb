@@ -7,21 +7,17 @@ class ExpressionTree
 
     OPERATORS = %w[+ -]
 
-    def initialize(tokenList)
-        @tokenList = tokenList
-        @tree = create(tokenList)
-    end
-    
-    def tokenList
-        @tokenList
+    def initialize(tokens)
+        @tokens = tokens
+        @tree = create_tree(@tokens)
     end
 
-    def create(tokens = tokenList)
-        if tokens.count == 1
+    def create_tree(tokens = self.tokens)
+        if tokens.count == 1 # base case when only have a number
             return TreeNode.new(tokens.first)
-        elsif tokens.count == 3
+        elsif tokens.count == 3 # base case when we have two operands and an operator since this is a valid expression
             left = TreeNode.new(tokens.first)
-            parent = TreeNode.new(tokens[1])
+            parent = TreeNode.new(tokens[1]) # parent is always an operator
             right = TreeNode.new(tokens.last)
 
             parent.left = left
@@ -29,18 +25,18 @@ class ExpressionTree
             return parent
         else
             expr = []
-            while ! OPERATORS.include?(tokens.first) do
+            while ! OPERATORS.include?(tokens.first) do # traverse until an operator appears 
                 expr.append(tokens.first)
                 tokens.delete_at(0)
             end
 
-            op = tokens.first
+            operator = tokens.first
             tokens.delete_at(0)
-            #puts "left " + expr.to_s + " op " + op.to_s + " right " + tokens.to_s
 
-            left = create(expr)
-            parent = TreeNode.new(op)
-            right = create(tokens)
+            # construct and return the tree / subtree
+            left = create_tree(expr)
+            parent = TreeNode.new(operator)
+            right = create_tree(tokens)
 
             parent.left = left
             parent.right = right
@@ -49,9 +45,11 @@ class ExpressionTree
         end        
     end
 
-    
-    def calculate(node)
-        return process_number(node.value) if node.left.nil? && node.right.nil?
+    # given an expression tree root, gets the actual result
+    def calculate(node = self.tree)
+
+        # base case when a leaf is reached (number) 
+        return ExpressionTree.process_number(node.value) if node.left.nil? && node.right.nil?
 
         left = Number.new(0)
         if node.left
@@ -63,31 +61,27 @@ class ExpressionTree
             right = calculate(node.right)
         end
 
+        # using send to pass the actual operator and evaluate ir using overloading of operators
         return left.send(node.value,right)
         
     end
 
-    def process_number(number_string)
+    # parses and determine which case is (whole number (integer), proper or inpromer fractions)
+    def self.process_number(number_string)
         numbers = number_string.split(/[_\/]/)
         
         whole = numbers.first.to_i
         denominator = 1
 
-        whole *= numbers[1].to_i if numbers.count == 3
-        denominator = numbers.last.to_i if numbers.count > 1
+        whole *= numbers[1].to_i if numbers.count == 3 # mixed number
+        denominator = numbers.last.to_i if numbers.count > 1 # with slash (fractional)
          
         return Number.new(whole, denominator)
     end
 
-    def print_tree(head, order)
-        if head.left.nil? && head.right.nil?
-            order.push(head.value)
-        else
-            print_tree(head.left,order) if head.left
-            order.append(head.value)
-            print_tree(head.right,order) if head.right
-        end
-    end
+    private
+
+    attr_accessor :tokens
 
 end
 
