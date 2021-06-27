@@ -1,34 +1,38 @@
 require 'aasm'
-require_relative 'number.rb'
-require 'pry'
+require_relative 'expression_tree'
 
 class Expr
-    attr_accessor:input_string#, :slice
 
     include AASM
 
     def initialize(input_string)
       @input_string = input_string
-      @slice = ''
-      @is_operator = false
-      @has_underscore = false
-      @has_slash = false
       @tokens = []
-    end
-
-    def tokens
-      @tokens
+      @slice = ''
+      @is_operator_char = false
+      @is_slash_char = false
+      @is_underscore_char = false
     end
 
     def run
       while input_string.length > 0 do
         begin
           next_
-        rescue RuntimeError
+        rescue AASM::InvalidTransition
           return false
         end
       end
+
+      process_tokens
       true
+    end
+
+    def evaluate
+      expr_tree.result
+    end
+
+    def print
+      evaluate.representation
     end
   
     aasm do
@@ -43,84 +47,72 @@ class Expr
 
       event :next_ do
 
-        before do
-          puts 'from ' + aasm.human_state
-        end
-
         after do
-          #binding.pry
-          @slice += next_char if next_char != ' '
-          input_string[0] = ''
-          puts 'to ' + aasm.human_state
+          self.slice += next_char unless is_space?
+          reset_first_char
 
-          if input_string.length == 0
+          if input_string.length == 0 # checking last character of the expression
             if digit? || non_zero_digit?
-              puts ''
-
-              raise RuntimeError if @has_underscore && !@has_slash
-
-              puts "number: "+@slice
-              @tokens.append(@slice)
-            elsif op? || negative_sign? || @is_operator
-              raise RuntimeError
+              raise AASM::InvalidTransition.new(self, 'error', :default) if incomplete_mixed_number?
+              
+              self.tokens.append(self.slice)
+            elsif op? || negative_sign? || self.is_operator_char
+              raise AASM::InvalidTransition.new(self, 'error', :default)
             end
           end
         end
 
         error do |e|
           puts "invalid expression"
-          raise RuntimeError
+          raise AASM::InvalidTransition.new(self,'error',:default)
         end
 
         transitions from: :start, to: :negative_sign do
           guard do
-            next_char == '-'
+            is_negative_sign?
           end
         end
 
         transitions from: :start, to: :non_zero_digit do
           guard do
-            #binding.pry
             non_zero?
           end
         end
 
         transitions from: [:non_zero_digit, :digit], to: :space do
           guard do
-            space?
+            is_space?
           end
 
           after do
-            raise RuntimeError if @has_underscore && !@has_slash
-            puts "number: "+@slice,''
-            @tokens.append(@slice)
-            @slice = ''
-            @has_underscore = false
-            @has_slash = false
-            @is_operator = false
+            raise AASM::InvalidTransition.new(self,'error',:default) if incomplete_mixed_number?
+            self.tokens.append(self.slice)
+            self.slice = ''
+            self.is_underscore_char = false
+            self.is_slash_char = false
+            self.is_operator_char = false
           end
         end
 
         transitions from: [:space, :op], to: :space do
           guard do
-            space?
+            is_space?
           end
 
           after do
-            @slice = ''
+            self.slice = ''
           end
         end
 
         transitions from: :space, to: :op do
           guard do
-            operator? && !@is_operator
+            is_operator? && !self.is_operator_char
           end
 
           after do
-            @slice = next_char
-            puts '',"operator: " + @slice,''
-            @tokens.append(@slice)
-            @is_operator = true
+            self.slice = next_char
+            self.tokens.append(self.slice)
+            self.is_operator_char = true
           end
         end
 
@@ -132,7 +124,7 @@ class Expr
 
         transitions from: [:space], to: :negative_sign do
           guard do
-            next_char == '-'
+            is_negative_sign?
           end
         end
 
@@ -162,21 +154,21 @@ class Expr
 
         transitions from: [:digit,:non_zero_digit], to: :underscore do
           guard do
-            next_char == '_' &&  !@has_underscore && !@has_slash
+            is_underscore? && first_underscore_in_number?
           end
 
           after do
-            @has_underscore = true
+            self.is_underscore_char = true
           end
         end
 
         transitions from: [:digit,:non_zero_digit], to: :slash do
           guard do
-            next_char == '/' && !@has_slash
+            is_slash? && !self.is_slash_char
           end
 
           after do
-            @has_slash = true
+            self.is_slash_char = true
           end
         end
 
@@ -200,8 +192,32 @@ class Expr
       end
     end  
 
+    protected
+
+    attr_accessor :tokens, :input_string, :slice, :is_operator_char, :is_underscore_char, :is_slash_char, :expression_tree
+
     private
-    #attr_accessor:is_operator, :has_underscore, :has_slash
+
+    def expr_tree
+      @expr_tree ||= ExpressionTree.new(tokens)
+    end
+
+    # linear time processing of token to avoid using - operation and getting negative results in the expression tree
+    # -3 - 2 - 1 is transformed into -3 + -2 + -1
+    def process_tokens
+      i = 0
+      while i < tokens.length do
+        if tokens[i] == '-'
+          if tokens[i+1][0] == '-'
+            tokens[i+1][0] = ''
+          else
+            tokens[i+1].insert(0,'-')
+          end
+          tokens[i] = '+'
+        end
+        i += 1
+      end
+    end
 
     def next_char
       input_string[0]
@@ -215,11 +231,35 @@ class Expr
       next_char.count("^1-9").zero?
     end
 
-    def space?
+    def is_space?
       next_char.count("^ ").zero?
     end
 
-    def operator? # remove period
+    def is_negative_sign?
+      next_char.count("^-").zero?
+    end
+
+    def is_underscore?
+      next_char.count("^_").zero?
+    end
+
+    def is_slash?
+      next_char.count("^/").zero?
+    end
+
+    def is_operator? # remove period
       next_char.count("^+-/*/").zero? && input_string[1] == ' '
+    end
+
+    def incomplete_mixed_number?
+      self.is_underscore_char && !self.is_slash_char
+    end
+
+    def first_underscore_in_number?
+      !self.is_underscore_char && !self.is_slash_char
+    end
+
+    def reset_first_char
+      input_string[0] = ''
     end
 end

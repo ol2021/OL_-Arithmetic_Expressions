@@ -1,5 +1,6 @@
 require_relative 'tree_node'
 require_relative 'number'
+require_relative 'math_utils'
 
 class ExpressionTree
 
@@ -10,7 +11,27 @@ class ExpressionTree
     def initialize(tokens)
         @tokens = tokens
         @tree = create_tree(@tokens)
+        
     end
+
+    def result
+        MathUtils.reduce_fraction(calculate)
+    end
+
+    # parses and determine which case is (whole number (integer), proper or inpromer fractions)
+    def self.process_number(number_string)
+        numbers = number_string.split(/[_\/]/)
+        
+        whole = numbers.first.to_i
+        denominator = 1
+
+        whole = whole * numbers.last.to_i + numbers[1].to_i if numbers.count == 3 # mixed number
+        denominator = numbers.last.to_i if numbers.count > 1 # with slash (fractional)
+         
+        return Number.new(whole, denominator)
+    end
+
+    private
 
     def create_tree(tokens = self.tokens)
         if tokens.count == 1 # base case when only have a number
@@ -62,21 +83,7 @@ class ExpressionTree
         end
 
         # using send to pass the actual operator and evaluate ir using overloading of operators
-        return left.send(node.value,right)
-        
-    end
-
-    # parses and determine which case is (whole number (integer), proper or inpromer fractions)
-    def self.process_number(number_string)
-        numbers = number_string.split(/[_\/]/)
-        
-        whole = numbers.first.to_i
-        denominator = 1
-
-        whole *= numbers[1].to_i if numbers.count == 3 # mixed number
-        denominator = numbers.last.to_i if numbers.count > 1 # with slash (fractional)
-         
-        return Number.new(whole, denominator)
+        return left.send(node.value,right)   
     end
 
     private

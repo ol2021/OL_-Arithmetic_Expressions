@@ -1,3 +1,5 @@
+require 'pry'
+
 class Number
     attr_accessor :numerator, :denominator
 
@@ -12,15 +14,6 @@ class Number
     def +(obj)
         denominator = self.denominator * obj.denominator
         numerator =  denominator / self.denominator * self.numerator + denominator / obj.denominator * obj.numerator
-
-        return Number.new(numerator, denominator)
-    end
-
-    # default substraction
-    # (a / b) - (c / d) = (da - bc)/bd
-    def -(obj)
-        denominator = self.denominator * obj.denominator
-        numerator =  denominator / self.denominator * self.numerator - denominator / obj.denominator * obj.numerator
 
         return Number.new(numerator, denominator)
     end
@@ -44,9 +37,11 @@ class Number
     end
 
     def representation
-        sign = ''
-        sign = '-' if self.numerator * self.denominator < 0 
-        puts "#{sign} #{self.numerator.abs.to_s}/#{self.denominator.abs.to_s}"
+        result = ""
+        result += "-" if self.numerator * self.denominator < 0
+        result += self.numerator.abs.to_s
+        result += "/ #{self.denominator.abs.to_s}" if self.denominator.abs != 1
+        result
     end
 end
 
