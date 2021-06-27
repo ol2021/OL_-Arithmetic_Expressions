@@ -1,20 +1,22 @@
 require_relative 'tree_node'
+require_relative 'number'
 
 class ExpressionTree
+
+    attr_accessor :tree
 
     OPERATORS = %w[+ -]
 
     def initialize(tokenList)
         @tokenList = tokenList
-        @spaces = @tokenList.count
+        @tree = create(tokenList)
     end
-
+    
     def tokenList
         @tokenList
     end
 
     def create(tokens = tokenList)
-        
         if tokens.count == 1
             return TreeNode.new(tokens.first)
         elsif tokens.count == 3
@@ -47,8 +49,35 @@ class ExpressionTree
         end        
     end
 
+    
+    def calculate(node)
+        return process_number(node.value) if node.left.nil? && node.right.nil?
 
-    private
+        left = Number.new(0)
+        if node.left
+            left = calculate(node.left)
+        end
+
+        right = Number.new(0)
+        if node.left
+            right = calculate(node.right)
+        end
+
+        return left.send(node.value,right)
+        
+    end
+
+    def process_number(number_string)
+        numbers = number_string.split(/[_\/]/)
+        
+        whole = numbers.first.to_i
+        denominator = 1
+
+        whole *= numbers[1].to_i if numbers.count == 3
+        denominator = numbers.last.to_i if numbers.count > 1
+         
+        return Number.new(whole, denominator)
+    end
 
     def print_tree(head, order)
         if head.left.nil? && head.right.nil?

@@ -3,7 +3,7 @@ require_relative 'number.rb'
 require 'pry'
 
 class Expr
-    attr_accessor:tokens, :input_string #slice
+    attr_accessor:input_string#, :slice
 
     include AASM
 
@@ -14,6 +14,10 @@ class Expr
       @has_underscore = false
       @has_slash = false
       @tokens = []
+    end
+
+    def tokens
+      @tokens
     end
 
     def run
@@ -56,7 +60,7 @@ class Expr
               raise RuntimeError if @has_underscore && !@has_slash
 
               puts "number: "+@slice
-              tokens.append(@slice)
+              @tokens.append(@slice)
             elsif op? || negative_sign? || @is_operator
               raise RuntimeError
             end
@@ -89,7 +93,7 @@ class Expr
           after do
             raise RuntimeError if @has_underscore && !@has_slash
             puts "number: "+@slice,''
-            tokens.append(@slice)
+            @tokens.append(@slice)
             @slice = ''
             @has_underscore = false
             @has_slash = false
@@ -115,7 +119,7 @@ class Expr
           after do
             @slice = next_char
             puts '',"operator: " + @slice,''
-            tokens.append(@slice)
+            @tokens.append(@slice)
             @is_operator = true
           end
         end
