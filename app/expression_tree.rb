@@ -1,17 +1,18 @@
 require_relative 'tree_node'
 require_relative 'number'
 require_relative 'math_utils'
+require 'pry'
 
 class ExpressionTree
 
     attr_accessor :tree
 
-    OPERATORS = %w[+ -]
+    OPERATORS_ORDER_2 = %w[+ -]
+    OPERATORS_ORDER_1 = %w[* /]
 
     def initialize(tokens)
         @tokens = tokens
         @tree = create_tree(@tokens)
-        
     end
 
     def result
@@ -46,9 +47,19 @@ class ExpressionTree
             return parent
         else
             expr = []
-            while ! OPERATORS.include?(tokens.first) do # traverse until an operator appears 
+
+            while tokens.count > 0 && ! OPERATORS_ORDER_2.include?(tokens.first) do # traverse until an operator appears 
                 expr.append(tokens.first)
                 tokens.delete_at(0)
+            end
+
+            if tokens.empty?
+                tokens = expr
+                expr = []
+                while ! OPERATORS_ORDER_1.include?(tokens.first) do # traverse until an operator ( / * in expr is empty) appears 
+                    expr.append(tokens.first)
+                    tokens.delete_at(0)
+                end
             end
 
             operator = tokens.first
