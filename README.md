@@ -41,7 +41,7 @@ a/b / c/d =  a*d /b*c ->
 1. Clone this repository
 
     ```
-    git clone git@github.com:runahr/saas-rails-api.git
+    git clone git@github.com:ptorres88/OL_-Arithmetic_Expressions.git
     ```
 
 1. Install bundler
