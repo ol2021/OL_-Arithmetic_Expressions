@@ -110,8 +110,6 @@ describe Expr do
     describe "#print" do
         context "result with fractions" do
           it "returns true" do
-            str = "- 4 - 7 + 1_1/2 - 1/4" #49
-            str = "3/2 - 1/4 - 4 - 7"
             str = "-3 - 2 - 1"
             expr = Expr.new(str)
             expr.run

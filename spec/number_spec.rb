@@ -15,7 +15,7 @@ describe Number do
         end
     end
 
-    describe "#+" do
+    describe "#-" do
         context "Given simple substraction of fractional operands" do
           it "returns true when proper result values given" do
             operand1 = Number.new(3,4)

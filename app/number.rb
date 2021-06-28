@@ -1,5 +1,3 @@
-require 'pry'
-
 class Number
     attr_accessor :numerator, :denominator
 
@@ -40,7 +38,7 @@ class Number
         result = ""
         result += "-" if self.numerator * self.denominator < 0
         result += self.numerator.abs.to_s
-        result += "/ #{self.denominator.abs.to_s}" if self.denominator.abs != 1
+        result += " / #{self.denominator.abs.to_s}" if self.denominator.abs != 1
         result
     end
 end
