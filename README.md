@@ -17,6 +17,10 @@ a/b / c/d =  a*d /b*c ->
 ![alt text](https://ibb.co/X5jRRwB)
 ![alt text](https://ibb.co/HPb7LDR)
 
+![alt text](https://i.ibb.co/8xNZZh3/Untitled-Diagram-1.png)
+![alt text](https://i.ibb.co/LgcSDzB/Untitled-Diagram.png)
+
+
 ## <a name="local"></a> Local Setup
 
 ### Set up Ruby
