@@ -7,3 +7,6 @@ gem 'aasm'
 # Test
 gem 'rspec'
 gem 'pry'
+
+# Others
+gem "tty-prompt"
