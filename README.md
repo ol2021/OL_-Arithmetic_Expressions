@@ -51,6 +51,10 @@ a/b * c/d = ac / bd
 
 a/b / c/d = ad / bc
 
+### Notes
+
+As we are using integers and float values the expressions are also limited by these types
+
 
 ## <a name="local"></a> Local Setup
 
@@ -90,7 +94,7 @@ a/b / c/d = ad / bc
 1. Run the script
 
     ```
-    irb app/main.rb
+    bundle exec irb app/main.rb
     ```
 
 ![alt text](https://i.ibb.co/80kqhKf/Captura-de-Pantalla-2021-06-28-a-la-s-9-55-12.png)
@@ -110,10 +114,16 @@ Note: TTY prompt is used to handle inputs, so if we enter some non ascii keys th
     docker build -t ol_test .
     ```
 
-1. Run docker image
+1. Run docker image to prompt expressions
     ```
-    docker run -it oltest
+    docker run -it ol_test
     ```
+
+1. Run docker image to run tests
+    ```
+    docker run -it --entrypoint rspec ol_test
+    ```
+
 
 ### Tests
 

@@ -23,4 +23,5 @@ RUN gem install bundler -v 2.0.2 && \
   find /usr/local/bundle/gems/ -name "*.o" -delete
 
 COPY . $APP/
+
 ENTRYPOINT ["irb", "app/main.rb"]
