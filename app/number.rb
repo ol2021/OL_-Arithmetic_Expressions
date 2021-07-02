@@ -39,6 +39,13 @@ class Number
         result += "-" if self.numerator * self.denominator < 0
         result += self.numerator.abs.to_s
         result += " / #{self.denominator.abs.to_s}" if self.denominator.abs != 1
+        
+        if self.numerator > self.denominator && self.denominator != 1
+            whole = self.numerator / self.denominator
+            modulo = self.numerator % self.denominator
+            result += " OR  #{whole}_#{modulo}/#{self.denominator} " if modulo != 0
+        end
+
         result
     end
 end
